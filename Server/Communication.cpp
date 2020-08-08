@@ -1,3 +1,7 @@
+/* This is Communication API for Server side. 
+ * Editor : yichan 2020
+ */
+
 #include "Communication.h"
 
 
@@ -44,7 +48,7 @@ void Communication::CreateSocket()
 		exit(1);
 	}
 }
-void Communication::BindAndListen()
+void Communication::Bind()
 {
 	// Socket binding
 	iResult = bind(ServerSocket, servinfo->ai_addr, (int)servinfo->ai_addrlen);
@@ -53,6 +57,10 @@ void Communication::BindAndListen()
 		CloseSocket();
 		exit(1);
 	}
+}
+
+void Communication::Listen()
+{
 	// Socket listening
 	iResult = listen(ServerSocket, SOMAXCONN);
 	if (iResult == SOCKET_ERROR) {
@@ -76,15 +84,6 @@ void Communication::Accept()
 	cout << "[Socket] Client connected!" << endl;
 }
 
-void Communication::Connect()
-{
-	ClientSocket = connect(ServerSocket, (sockaddr *)clientinfo, addr_len);
-	if (ClientSocket == INVALID_SOCKET) {
-		cout << "[Socket] Connection error" << endl;
-		//«Ý­×¥¿
-	}
-}
-
 void Communication::CloseSocket()
 {
 	cout << "[Socket] Close socket communication" << endl;
@@ -98,13 +97,13 @@ void Communication::CloseSocket()
 void Communication::ServerRecieve()
 {
 	iResult = recv(ClientSocket, recvbuf, sizeof(recvbuf), 0);
-	if (iSendResult == SOCKET_ERROR) {
-		cout << "[Socket] Send failed with error: " << WSAGetLastError() << endl;
-		CloseSocket();
-		return;
-	}
 	if (iResult > 0) {
-		cout << "Bytes received: " << iResult << "\nMessage: " << recvbuf << endl;
+		cout << "Client: " << recvbuf << endl;
+	}
+	else
+	{
+		/*Listen();			//only sending fail should call it, or it will wrong when reconnect the  Client
+		Accept();*/      
 	}
 	memset(recvbuf, 0, sizeof(recvbuf));
 }
@@ -113,15 +112,9 @@ void Communication::ServerSend()
 {
 	iSendResult = send(ClientSocket, message, sizeof(message), 0);
 	if (iSendResult == SOCKET_ERROR) {
-		cout << "[Socket] Send failed with error: " << WSAGetLastError() << endl;
-		CloseSocket();
-		return;
+		Listen();
+		Accept();
 	}
-	cout << "Send! " << endl;
+
 	memset(message, 0, sizeof(message));
 }
-
-void Communication::ClientRecieve() 
-{}
-void Communication::ClientSend() 
-{}

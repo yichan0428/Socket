@@ -1,3 +1,7 @@
+/* This is Communication API header file for Server side.
+* Editor : yichan 2020
+*/
+
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 #pragma once
@@ -32,14 +36,12 @@ public:
 	char message[DEFAULT_BUFLEN];
 
 	void CreateSocket();
-	void BindAndListen();
+	void Bind();
+	void Listen();
 	void Accept();
-	void Connect();
 	void CloseSocket();
 	void ServerRecieve();
 	void ServerSend();
-	void ClientRecieve();
-	void ClientSend();
 
 private:
 	WSADATA wsaData;

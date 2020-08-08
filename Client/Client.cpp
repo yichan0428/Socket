@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <thread>
+#include "Communication.h"
 
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
@@ -17,58 +19,43 @@
 
 using namespace std;
 
-
+Communication communication;
+void sendMsg()
+{
+	string input;
+	int n = 10000;
+	int start = n + 1;
+	while (n) {
+		//cin >> input;
+		input = "c" + to_string(start - n);
+		strcpy_s(communication.message, input.c_str());
+		communication.ClientSend();
+		cout << "send!" << endl;
+		n--;
+	}
+}
+void recvMsg()
+{
+	while (1)
+	{
+		communication.ClientRecieve();
+	}
+}
 
 int main(int argc, char *argv[])
 {
-	WSADATA wsaData;
-	int iResult;
+	communication.CreateSocket();
+	communication.Connect();
 
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		cout << "WSAStartup failed with error:" << iResult << endl;
-		return 1;
-	}
-	//socket的建立
-	int sockfd = 0;
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	//========== Add your code below ==========//
+	thread sendthread(sendMsg);
+	thread recvthread(recvMsg);
+	sendthread.join();
+	recvthread.join();
 
-	if (sockfd == -1) {
-		cout << "Fail to create a socket." << endl;
-	}
 
-	//socket的連線
+	//========== Add your code above ==========//
 
-	struct sockaddr_in info;
-	info.sin_family = PF_INET;
-
-	//localhost testR
-	inet_pton(info.sin_family, "192.168.50.46", &info.sin_addr.s_addr);
-	info.sin_port = htons(27015);
-
-	int err = connect(sockfd, (struct sockaddr *)&info, sizeof(info));
-	if (err == -1) {
-		cout << "Connection error" << endl;
-	}
-
-	int iSendResult;
-	char message[300] = { "success" };
-	char receiveMessage[300] = {};
-	string input;
-
-	//Send a message to server
-	while (1) {
-		iResult = send(sockfd, message, sizeof(message), 0);
-		if (iResult == SOCKET_ERROR) {
-			cout << "send failed with error: " << WSAGetLastError() << endl;
-			closesocket(sockfd);
-			WSACleanup();
-			return 1;
-		}
-		iSendResult = recv(sockfd, receiveMessage, sizeof(receiveMessage), 0);
-		cout << receiveMessage << endl;
-	}
-	cout << "Finished " << endl;
-	closesocket(sockfd);
+	communication.CloseSocket();
 	return 0;
 }
